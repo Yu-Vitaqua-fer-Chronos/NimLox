@@ -25,14 +25,18 @@ type TokenTypes* = enum
 type Token* = object
   tokenType*: TokenTypes
   lexeme*: string
-  literal*: string
+  startPos*: int
   line*: int
 
-proc new*(_: typedesc[Token], tokenType: TokenTypes, lexeme, literal: string,
-  line: int): Token =
-    result = Token(tokenType: tokenType, lexeme: lexeme, literal: literal,
-      line: line)
+proc new*(_: typedesc[Token], tokenType: TokenTypes, lexeme: string | char,
+  startPos, line: int): Token =
+    when lexeme is char:
+      result = Token(tokenType: tokenType, lexeme: $lexeme, startPos: startPos,
+        line: line)
+    else:
+      result = Token(tokenType: tokenType, lexeme: lexeme, startPos: startPos,
+        line: line)
 
 proc `$`*(t: Token): string =
-  result = "(Token: {t.tokenType}, Lexeme: {t.lexeme}, Literal: ".fmt &
-    "{t.literal}, Line: {t.line})".fmt
+  result = "(Token: {t.tokenType}, Lexeme: {t.lexeme}, ".fmt &
+    "Line: {t.line})".fmt

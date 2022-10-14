@@ -5,14 +5,19 @@ import ./src/[
   exceptions
 ]
 
-let PROMPT = "Usage: " & paramStr(0) & " [script]"
+let prompt = "Usage: " & paramStr(0) & " [script]"
 
 if paramCount() > 1:
-  quit(PROMPT, 64)
+  quit(prompt, 64)
 
 proc run(code: string) =
   var lexer = LoxLexer.init(code)
-  lexer.scanTokens()
+  var tokens = lexer.scanTokens()
+
+  if lexer.hadError:
+    return
+
+  echo tokens
 
 proc runFile(file: string) =
   run(readFile(paramStr(1)))
