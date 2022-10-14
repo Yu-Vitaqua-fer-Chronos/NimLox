@@ -1,2 +1,3 @@
 # NimLox
-https://craftinginterpreters.com/scanning.html#recognizing-lexemes
+Current stage we're on: 
+https://craftinginterpreters.com/scanning.html#reserved-words-and-identifiers
