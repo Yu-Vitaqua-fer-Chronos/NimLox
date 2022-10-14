@@ -18,16 +18,19 @@ proc init*(_: typedesc[LoxLexer], code: string): LoxLexer =
   result.line = 1
   result.hadError = false
 
-proc scanString(l: var LoxLexer) =
+template defaultScanDefs(l: var LoxLexer) =
   template getChar(): char = l.code[l.pos]
   template getCharAtPos(val: int): char = l.code[val]
 
-  proc getLookahead(l: LoxLexer): char =
-    if l.pos >= l.code.high:
+  proc getLookahead(lex: LoxLexer): char =
+    if lex.pos >= lex.code.high:
       return '\0'
     return getCharAtPos(l.pos+1)
 
   template tokens(): seq[Token] = l.tokens
+
+proc scanString(l: var LoxLexer) =
+  l.defaultScanDefs()
 
   l.pos += 1
 
@@ -43,15 +46,7 @@ proc scanString(l: var LoxLexer) =
 
 
 proc scanTokens*(l: var LoxLexer): seq[Token] =
-  template getChar(): char = l.code[l.pos]
-  template getCharAtPos(val: int): char = l.code[val]
-
-  proc getLookahead(l: LoxLexer): char =
-    if l.pos >= l.code.high:
-      return '\0'
-    return getCharAtPos(l.pos+1)
-
-  template tokens(): seq[Token] = l.tokens
+  l.defaultScanDefs()
 
   while l.pos < l.code.high:
     l.startPos = l.pos
@@ -139,9 +134,13 @@ proc scanTokens*(l: var LoxLexer): seq[Token] =
         discard
 
       else:
-        l.hadError = true
-        let escchar = escape($cchar, "`", "`")
-        nloxError l.line, "Character {escchar} starting at position {l.startPos}, line {l.line} is invalid!".fmt
+        if cchar.isDigit:
+          l.scanNumber()
+
+        else:
+          l.hadError = true
+          let escchar = escape($cchar, "`", "`")
+          nloxError l.line, "Character {escchar} starting at position {l.startPos}, line {l.line} is invalid!".fmt
 
     l.pos += 1
 
