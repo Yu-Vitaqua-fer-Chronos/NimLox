@@ -35,17 +35,46 @@ proc scanMultilineComment(l: var LoxLexer) =
 
   let startLine = l.line
 
+  var cchar = getChar()
+
   l.pos += 2 # Skip first nest
   while l.pos <= l.code.high:
-    if getChar == '/':
+    cchar = getChar()
+    if cchar == '/':
       l.pos += 1
-      if getChar == '*':
+      cchar = getChar()
+      if cchar == '*':
         nest += 1
+        l.pos += 1
+
+      elif cchar == '\n':
+        l.line += 1
+        l.pos += 1
+
+    elif cchar == '*':
+      l.pos += 1
+      cchar = getChar()
+
+      if cchar == '/':
+        nest -= 1
+        l.pos += 1
+        if nest == -1:
+          return
+
+      elif cchar == '\n':
+        l.line += 1
+        l.pos += 1
+
+    elif cchar == '\n':
+      l.line += 1
+      l.pos += 1
+
     else:
       l.pos += 1
 
   if l.pos > l.code.high:
     nloxError(startLine, "Unterminated multiline comment from position {l.startPos} to {l.pos}!".fmt)
+    l.hadError = true
     return
 
 proc scanIdentifier(l: var LoxLexer) =
@@ -123,6 +152,7 @@ proc scanNumber(l: var LoxLexer) =
 
   if count(value, '.') > 1:
     nloxError(l.line, fmt"`{value}` is an invalid number literal!")
+    l.hadError = true
     return
 
   tokens.add Token.new(NUMBER, value, l.startPos, l.line)
@@ -137,6 +167,7 @@ proc scanString(l: var LoxLexer) =
 
   if l.pos > l.code.high:
     nloxError(l.line, "Unterminated string literal from position {l.startPos} to {l.pos}!".fmt)
+    l.hadError = true
     return
 
   let value = l.code.substr(l.startPos + 1, l.pos - 1)
@@ -181,7 +212,11 @@ proc scanTokens*(l: var LoxLexer): seq[Token] =
         tokens.add Token.new(SEMICOLON, cchar, l.startPos, l.line)
 
       of '*':
-        tokens.add Token.new(STAR, cchar, l.startPos, l.line)
+        if lookahead == '/':
+          nloxError(l.line, fmt"Multiline comment terminator at position {l.startPos+1} but no matching multiline comment!")
+          l.hadError = true
+        else:
+          tokens.add Token.new(STAR, cchar, l.startPos, l.line)
 
       of '!':
         if lookahead == '=':
@@ -219,6 +254,9 @@ proc scanTokens*(l: var LoxLexer): seq[Token] =
             l.pos += 1
 
           l.pos -= 1 # For newline
+        elif lookahead == '*':
+          l.scanMultilineComment()
+
         else:
           tokens.add Token.new(SLASH, cchar, l.startPos, l.line)
 
