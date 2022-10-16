@@ -24,6 +24,8 @@ proc new(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary 
 
 """
 
+  var types, newProcs: string
+
   var astTypes: Table[string, seq[NamedType]]
 
   for astType in astTypesArr.items:
@@ -63,7 +65,10 @@ proc new(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary 
         newConstructorProc &= ", ".fmt
         newConstructedType &= ", ".fmt
 
-    code &= newTypeCode & newConstructorProc & newConstructedType
+    types &= newTypeCode
+    newProcs &= newConstructorProc & newConstructedType
+
+  code &= types & newProcs
 
   outputDir.createDir
 
