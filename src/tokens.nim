@@ -21,34 +21,39 @@ type TokenTypes* = enum
   # Misc.
   EOF
 
+type AstNodeKinds* = enum
+  anString, anInteger, anFloat, anBoolean
+
+type AstNode* = object
+  case kind:
+    of anString:
+      strVal: string
+    of anInteger:
+      intVal: BiggestInt
+    of anFloat:
+      floatVal: BiggestFloat
+    of anBoolean:
+      boolVal: bool
+
+proc toAstNode*(literal: string): AstNode = AstNode(kind: anString, strVal: literal)
+proc toAstNode*(literal: BiggestInt): AstNode = AstNode(kind: anInteger, intVal: literal)
+proc toAstNode*(literal: BiggestFloat): AstNode = AstNode(kind: anFloat, floatVal: literal)
+proc toAstNode*(literal: bool): AstNode = AstNode(kind: anBoolean, boolVal: literal)
 
 type Token* = object
   tokenType*: TokenTypes
-  literal: string
+  lexeme*: string
+  literal*: AstNode
   startPos*: int
   line*: int
 
-proc lexeme*(t: Token): string =
-  if t.tokenType == STRING:
-    result.addQuoted(t.literal)
-
-  else:
-    return t.literal
-
-proc literal*(t: Token): string =
-  if t.tokenType notin {STRING}:
-    return t.literal
-
-  else:
-    return ""
-
-proc new*(_: typedesc[Token], tokenType: TokenTypes, literal: string | char,
-  startPos, line: int): Token =
-    when literal is char:
-      result = Token(tokenType: tokenType, literal: $literal, startPos: startPos,
+proc new*(_: typedesc[Token], tokenType: TokenTypes, lexeme: string | char,
+  literal: AstNode, startPos, line: int): Token =
+    when lexeme is char:
+      result = Token(tokenType: tokenType, lexeme: $lexeme, literal: literal, startPos: startPos,
         line: line)
     else:
-      result = Token(tokenType: tokenType, literal: literal, startPos: startPos,
+      result = Token(tokenType: tokenType, lexeme: lexeme, literal: literal, startPos: startPos,
         line: line)
 
 proc `$`*(t: Token): string =

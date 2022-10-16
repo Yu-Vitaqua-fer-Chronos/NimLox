@@ -15,16 +15,11 @@ type NamedType = object
 
 
 proc defineAst(outputDir, baseObject: string, astTypesArr: openArray[string]) =
-  var code = """import ../tokens
+  var code = "import ../tokens\n\n"
 
-type Expr* = object of RootObj # So it's inheritable
-
-proc new(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary =
-  return Binary(left: left, operator: operator, right: right)
-
-"""
-
-  var types, newProcs: string
+  # Logic for creating the expressions start here
+  var types = "type Expr* = object of RootObj # So it's inheritable\n\n"
+  var newProcs: string
 
   var astTypes: Table[string, seq[NamedType]]
 
@@ -69,6 +64,13 @@ proc new(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary 
     newProcs &= newConstructorProc & newConstructedType
 
   code &= types & newProcs
+  # Logic for creating the expressions ends here
+
+  # Logic for creating the visitors start here
+
+  var visitorCode = """type """
+
+  # Logic for creating the visitors ends here
 
   outputDir.createDir
 
@@ -80,7 +82,7 @@ let outputDir = paramStr(1)
 const AST_TYPES = [
   "Binary   : Expr|left, Token|operator, Expr|right",
   "Grouping : Expr|expression",
-  "Literal  : string|value",
+  "Literal  : AstNode|value",
   "Unary    : Token|operator, Expr|right"
 ]
 

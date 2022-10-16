@@ -2,15 +2,12 @@ import ../tokens
 
 type Expr* = object of RootObj # So it's inheritable
 
-proc new(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary =
-  return Binary(left: left, operator: operator, right: right)
-
 type Unary* = object of Expr
   operator*: Token
   right*: Expr
 
 type Literal* = object of Expr
-  value*: string
+  value*: AstNode
 
 type Binary* = object of Expr
   left*: Expr
@@ -23,7 +20,7 @@ type Grouping* = object of Expr
 proc new*(_: typedesc[Unary], operator: Token, right: Expr): Unary =
   return Unary(operator: operator, right: right)
 
-proc new*(_: typedesc[Literal], value: string): Literal =
+proc new*(_: typedesc[Literal], value: AstNode): Literal =
   return Literal(value: value)
 
 proc new*(_: typedesc[Binary], left: Expr, operator: Token, right: Expr): Binary =
